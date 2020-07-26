@@ -1,31 +1,19 @@
 version: "3"
 services:
-  strapi:
-    image: strapi/strapi
-    environment:
-      DATABASE_CLIENT: postgres
-      DATABASE_NAME: strapi
-      DATABASE_HOST: postgres
-      DATABASE_PORT: 5432
-      DATABASE_USERNAME: strapi
-      DATABASE_PASSWORD: strapi
-    links:
-      - postgres:postgres
-    volumes:
-      - ./app:/srv/app
+  mysql:
+    image: mysql:5.6
+    container_name: sql_server
+    restart: always
+    tty: true
     ports:
-      - "1337:1337"
-    depends_on:
-      - postgres
-  postgres:
-    image: postgres
-    environment:
-      POSTGRES_USER: strapi
-      POSTGRES_PASSWORD: strapi
+      - "3306:3306"
     volumes:
-      - ./data:/data/postgres
-    ports:
-      - "5432:5432"
+      - ./data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: strapi
+      MYSQL_DATABASE: strapi
+      MYSQL_USER: strapi
+      MYSQL_PASSWORD: strapi
   client:
     build:
       context: ./nuxtjs
@@ -38,4 +26,16 @@ services:
     volumes:
       - ./nuxtjs:/myapp
     depends_on:
-      - strapi
+      - mysql
+  strapi:
+    build: ./strapi
+    command: yarn develop
+    tty: true
+    restart: always
+    tty: true
+    ports:
+      - "1337:1337"
+    volumes: 
+      - ./strapi:/strapi
+    depends_on:
+      - mysql
